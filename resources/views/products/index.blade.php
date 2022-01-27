@@ -15,7 +15,10 @@
                 </div>
                 <div class="col-md-2">
                     <select name="variant" id="" class="form-control">
-
+                        <option value=" ">Select a product variant</option>
+                        @foreach($variants as $variant)
+                            <option value="{{ $variant->id }}">{{ $variant->variant }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -51,24 +54,29 @@
                     </thead>
 
                     <tbody>
-
+                    @php $sl=0 @endphp
+                    @foreach($products as $product)
                     <tr>
-                        <td>1</td>
-                        <td>T-Shirt <br> Created at : 25-Aug-2020</td>
-                        <td>Quality product in low cost</td>
-                        <td>
+                        <td width="5%">{{ ++$sl }}</td>
+{{--                        <td>{{ $product->title }} <br> Created at : {{ Carbon\Carbon::parse($product->created_at)->format('d F Y') }}</td>--}}
+                        <td width="10%">{{ $product->title }} <br> Created at : {{ $product->created_at->diffForHumans() }}</td>
+                        <td>{{ $product->description }}</td>
+                        <td width="30%">
+                            @foreach($product->varient_price as $variant)
                             <dl class="row mb-0" style="height: 80px; overflow: hidden" id="variant">
 
                                 <dt class="col-sm-3 pb-0">
-                                    SM/ Red/ V-Nick
+{{--                                    {{ $variant->product_variant_two }}/ {{ $variant->product_variant_two }}/ {{ $variant->product_variant_three }}--}}
+                                    {{ get_variant_name($variant->product_variant_one,$variant->product_variant_two,$variant->product_variant_three) }}
                                 </dt>
                                 <dd class="col-sm-9">
                                     <dl class="row mb-0">
-                                        <dt class="col-sm-4 pb-0">Price : {{ number_format(200,2) }}</dt>
-                                        <dd class="col-sm-8 pb-0">InStock : {{ number_format(50,2) }}</dd>
+                                        <dt class="col-sm-4 pb-0">Price : {{ number_format($variant->price,2) }}</dt>
+                                        <dd class="col-sm-8 pb-0">InStock : {{ number_format($variant->stock,2) }}</dd>
                                     </dl>
                                 </dd>
                             </dl>
+                            @endforeach
                             <button onclick="$('#variant').toggleClass('h-auto')" class="btn btn-sm btn-link">Show more</button>
                         </td>
                         <td>
@@ -77,10 +85,19 @@
                             </div>
                         </td>
                     </tr>
+                    @endforeach
 
                     </tbody>
 
                 </table>
+                @if($paginate)
+                <div class="row">
+                    <div class="col-md-9"></div>
+                    <div class="col-md-3">
+                        {{ $products->links() }}
+                    </div>
+                </div>
+                @endif
             </div>
 
         </div>
@@ -88,7 +105,7 @@
         <div class="card-footer">
             <div class="row justify-content-between">
                 <div class="col-md-6">
-                    <p>Showing 1 to 10 out of 100</p>
+                    <p>Showing {{ $start }} to {{ $end }} out of {{ $total }}</p>
                 </div>
                 <div class="col-md-2">
 

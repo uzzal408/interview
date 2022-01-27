@@ -15,9 +15,52 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Http\Response|\Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('products.index');
+        $paginate = 1;
+        $total = Product::get()->count();
+        if($request->page==null){
+            $start = 1;
+            $end   = 2;
+        }else{
+            $start = ($request->page*2)-2+1;
+            $end  = ($request->page*2);
+            if($end>$total){
+                $end = $total;
+            }
+        }
+//        $products = Product::with('varient_price')->paginate(2);
+        $q = Product::with('varient_price');
+      if($request->title!=null || $request->price_from!=null || $request->variant!=null || $request->date ) {
+          if ($request->title != null) {
+              $q->where('title', 'LIKE', "%{$request->title}%");
+          }
+          if($request->date!=null){
+              $q->whereDate('created_at',$request->date);
+          }
+          if ($request->price_from != null && $request->price_to != null) {
+              $q->whereHas("varient_price", function ($qr) use ($request) {
+                  $qr->whereBetween("price", [$request->price_from, $request->price_to]);
+              })->get();
+          }
+          if ($request->variant) {
+              $q->whereHas("varient_price", function ($qr) use ($request) {
+                  $qr->where("product_variant_one", $request->variant);
+                  $qr->orWhere("product_variant_two", $request->variant);
+                  $qr->orWhere("product_variant_three", $request->variant);
+              })->get();
+          }
+
+          $products = $q->get();
+          $start = 1;
+          $total = count($products);
+          $end   = $total;
+          $paginate = 0;
+      }else{
+          $products = $q->paginate(2);
+      }
+        $variants = ProductVariant::select('id','variant')->get();
+        return view('products.index',compact('products','start','end','total','variants','paginate'));
     }
 
     /**
@@ -39,6 +82,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+
 
     }
 
